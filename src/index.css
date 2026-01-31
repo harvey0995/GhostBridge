@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@keyframes shred {
+  0% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
+  100% { transform: translateY(-100px) scale(0.5); opacity: 0; filter: blur(4px); }
+}
+
+@keyframes particle-drift {
+  0% { transform: translate(0, 0); opacity: 1; }
+  100% { transform: translate(var(--tw-translate-x), -150px); opacity: 0; }
+}
+
+.animate-shred {
+  animation: shred 0.8s ease-in forwards;
+}
