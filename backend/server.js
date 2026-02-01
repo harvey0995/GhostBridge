@@ -13,12 +13,15 @@ const io = socketIO(server, {
     methods: ["GET", "POST"],
     credentials: true
   },
-  // INCREASED LIMIT: 100MB (1e8) to ensure high-res files don't get cut off
+  // UPGRADED: 100MB Limit (1e8) 
+  // This ensures large high-res images from modern phones don't get cut off.
   maxHttpBufferSize: 1e8, 
+  // STABILITY: Added pingTimeout to prevent disconnection during large transfers
+  pingTimeout: 60000,
   transports: ['websocket', 'polling']
 });
 
-// Middleware with 100MB limit for JSON payloads
+// Middleware with 100MB limit to match Socket settings
 app.use(cors());
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
@@ -33,7 +36,7 @@ io.on('connection', (socket) => {
   const connectionTime = new Date().toLocaleTimeString();
   console.log(`\n✅ [${connectionTime}] Device Connected: ${socket.id}`);
 
-  // 1. JOIN ROOM
+  // 1. JOIN ROOM (For SecureUploader)
   socket.on("join-room", (roomId) => {
     socket.join(roomId);
     
@@ -56,24 +59,21 @@ io.on('connection', (socket) => {
     const { room, file } = data;
     const clickTime = new Date().toLocaleTimeString();
 
-    console.log(`\n📡 [FILE INCOMING]`);
+    // SERVER LOGGING: Helps track if the file actually reached the server
+    console.log(`\n📡 [FILE BEAMED]`);
     console.log(`   Name: ${file.name}`);
-    console.log(`   Type: ${file.type}`);
     console.log(`   Size: ${file.size} MB`);
-    console.log(`   Target Room: ${room}`);
+    console.log(`   Room: ${room}`);
 
-    // VALIDATION: Check if data is actually present
-    if (!file.content || file.content.length < 10) {
-      console.log(`   ❌ ERROR: File content missing or corrupted!`);
-      return;
+    // BEAMING LOGIC
+    if (file && file.content) {
+      // Send to the laptop in the room
+      socket.to(room).emit("receive-file", file);
+      console.log(`   🚀 SUCCESS: Forwarded to Shopkeeper`);
+    } else {
+      console.log(`   ❌ ERROR: Received empty file data`);
     }
-
-    // BEAMING: Using socket.to(room) sends it to EVERYONE ELSE in that room
-    // If the Laptop is in that room, it will receive it.
-    socket.to(room).emit("receive-file", file);
     
-    console.log(`   🚀 RESULT: Beamed to room ${room}`);
-
     // Confirm to phone
     socket.emit('click-confirmed', { 
       status: 'success', 

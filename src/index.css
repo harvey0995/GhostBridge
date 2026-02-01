@@ -2,77 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
-/* --- GHOSTBRIDGE ANIMATIONS --- */
-@keyframes shred {
-  0% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
-  100% { transform: translateY(-100px) scale(0.5); opacity: 0; filter: blur(4px); }
-}
-
-@keyframes particle-drift {
-  0% { transform: translate(0, 0); opacity: 1; }
-  100% { transform: translate(var(--tw-translate-x), -150px); opacity: 0; }
-}
-
-.animate-shred {
-  animation: shred 0.8s ease-in forwards;
-}
-
-/* --- THE PRINT ENGINE --- */
 @media print {
-  @page {
-    margin: 0 !important;
-    size: auto;
+  /* Hide the entire React App */
+  body * {
+    visibility: hidden !important;
   }
 
-  /* Hide all UI elements */
-  aside, 
-  header, 
-  button, 
-  .no-print,
-  nav {
+  /* Show ONLY the print area and its contents */
+  .print-area, .print-area * {
+    visibility: visible !important;
+  }
+
+  /* Position the print area at the absolute top of the paper */
+  .print-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  /* Force each image/PDF to be its own full page */
+  .print-item {
+    width: 100vw !important;
+    height: 100vh !important;
+    page-break-after: always !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  img, embed {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+  }
+
+  /* Remove headers, footers, and buttons */
+  header, aside, button, .no-print {
     display: none !important;
   }
+}
 
-  /* Reset Layout for Paper */
-  body, 
-  main, 
-  section,
-  #root {
-    background: white !important;
-    color: black !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    height: 100vh !important;
-    width: 100vw !important;
+@media print {
+  /* ... keep your existing hide logic ... */
+
+  .print-area {
+    display: block !important;
     overflow: visible !important;
   }
 
-  /* Full Page Fit for Media */
-  img, iframe {
-    width: 100vw !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
+  .print-item {
     display: block !important;
+    page-break-after: always !important; /* Forces each image to a new sheet */
+    page-break-inside: avoid !important;
+    width: 100% !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
-    border: none !important;
+  }
+
+  img, object {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 100vh !important;
     object-fit: contain !important;
-    page-break-after: always;
   }
-
-  ::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-/* --- CUSTOM UI SCROLLBAR (Non-Print) --- */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #06b6d4;
-  border-radius: 10px;
 }
