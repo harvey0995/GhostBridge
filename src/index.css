@@ -1,6 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* --- GHOSTBRIDGE ANIMATIONS --- */
 @keyframes shred {
   0% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
   100% { transform: translateY(-100px) scale(0.5); opacity: 0; filter: blur(4px); }
@@ -13,4 +15,64 @@
 
 .animate-shred {
   animation: shred 0.8s ease-in forwards;
+}
+
+/* --- THE PRINT ENGINE --- */
+@media print {
+  @page {
+    margin: 0 !important;
+    size: auto;
+  }
+
+  /* Hide all UI elements */
+  aside, 
+  header, 
+  button, 
+  .no-print,
+  nav {
+    display: none !important;
+  }
+
+  /* Reset Layout for Paper */
+  body, 
+  main, 
+  section,
+  #root {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    overflow: visible !important;
+  }
+
+  /* Full Page Fit for Media */
+  img, iframe {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    object-fit: contain !important;
+    page-break-after: always;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* --- CUSTOM UI SCROLLBAR (Non-Print) --- */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #06b6d4;
+  border-radius: 10px;
 }
