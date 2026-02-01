@@ -10,6 +10,7 @@ const SecureUploader = () => {
   const [status, setStatus] = useState("idle"); 
   const [uploadProgress, setUploadProgress] = useState(0);
   const [printSuccess, setPrintSuccess] = useState(false);
+  const [paperSaver, setPaperSaver] = useState(false); 
   const fileInputRef = useRef(null);
 
   const params = new URLSearchParams(window.location.search);
@@ -89,6 +90,22 @@ const SecureUploader = () => {
             <div className="bg-white p-3 rounded-xl mb-8 w-fit inline-flex border-4 border-cyan-500/20 shadow-2xl">
               <QRCodeSVG value={shopUrl} size={160} />
             </div>
+            
+            {/* PAPER SAVER TOGGLE */}
+            <div className="mb-6 p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input 
+                  type="checkbox" 
+                  checked={paperSaver} 
+                  onChange={(e) => setPaperSaver(e.target.checked)}
+                  className="w-4 h-4 accent-cyan-500 rounded border-slate-700"
+                />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400 group-hover:text-white transition-colors">
+                  4-Up Grid Mode
+                </span>
+              </label>
+            </div>
+
             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-4">INCOMING QUEUE</p>
             <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar">
                {receivedFiles.map((f) => (
@@ -97,9 +114,7 @@ const SecureUploader = () => {
                    <span className="text-cyan-400 font-black">READY</span>
                  </div>
                ))}
-               {receivedFiles.length === 0 && (
-                 <p className="text-[10px] text-slate-700 italic animate-pulse">Waiting for packets...</p>
-               )}
+               {receivedFiles.length === 0 && <p className="text-[10px] text-slate-700 italic animate-pulse">Waiting for packets...</p>}
             </div>
           </aside>
 
@@ -108,46 +123,40 @@ const SecureUploader = () => {
               <div className="h-full flex flex-col items-center justify-center no-print">
                 <div className="w-16 h-16 bg-cyan-500/10 border border-cyan-500/50 rounded-full flex items-center justify-center mb-6 text-2xl">✨</div>
                 <h2 className="text-2xl font-black italic uppercase mb-2 tracking-widest text-white">Files Processed</h2>
-                <button onClick={resetStation} className="mt-6 px-12 py-4 bg-white text-black font-black uppercase text-xs rounded-full hover:bg-cyan-500 transition-all shadow-lg">
-                  New Customer
-                </button>
+                <button onClick={resetStation} className="mt-6 px-12 py-4 bg-white text-black font-black uppercase text-xs rounded-full hover:bg-cyan-500 transition-all shadow-lg">New Customer</button>
               </div>
             ) : receivedFiles.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center no-print opacity-20">
                 <div className="text-5xl mb-4 animate-pulse">📡</div>
-                <div className="text-[10px] font-black uppercase tracking-[0.5em]">Listening for Stream</div>
+                <div className="text-[10px] font-black uppercase tracking-[0.5em]">Listening...</div>
               </div>
             ) : (
               <div className="flex flex-col min-h-full">
-                
                 <div className="no-print space-y-4 p-8">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mb-4">Live Preview</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mb-4">Decrypted Stream</p>
                   {receivedFiles.map((file) => (
                     <div key={`ui-${file.id}`} className="w-full max-w-4xl mx-auto flex items-center justify-between p-4 bg-slate-900/50 border border-white/5 rounded-xl">
                        <span className="text-[10px] font-bold uppercase text-slate-400">📄 {file.name}</span>
-                       <span className="text-[8px] font-bold text-cyan-400 border border-cyan-400/20 px-2 py-1 rounded">DECRYPTED</span>
+                       <span className="text-[8px] font-bold text-cyan-400">READY</span>
                     </div>
                   ))}
                 </div>
 
-                {/* --- CORRECTED PRINT AREA --- */}
-                <div className="print-area">
-                  {receivedFiles.map((file, index) => (
-                    <div 
-                      key={`print-item-${file.id}-${index}`} 
-                      className="print-item w-full flex justify-center p-8 print:p-0"
-                    >
+                {/* THE PRINT AREA: Applying the grid-mode class from your CSS */}
+                <div className={`print-area ${paperSaver ? 'grid-mode' : ''}`}>
+                  {receivedFiles.map((file, idx) => (
+                    <div key={`print-item-${file.id}-${idx}`} className="print-item">
                       {file.type.startsWith("image/") ? (
                         <img 
                           src={file.blobUrl} 
-                          className="max-h-[80vh] w-auto object-contain shadow-2xl print:shadow-none" 
-                          alt="document"
+                          className="print-content" 
+                          alt="document" 
                         />
                       ) : (
                         <object 
                           data={file.blobUrl} 
                           type="application/pdf" 
-                          className="w-full h-[85vh] print:w-screen print:h-screen"
+                          className="w-full h-[85vh] print:h-screen print:w-screen"
                         >
                           <p className="text-white">PDF Preview Unavailable</p>
                         </object>
@@ -159,15 +168,12 @@ const SecureUploader = () => {
                 <div className="fixed bottom-0 right-0 left-80 p-8 bg-slate-950/90 backdrop-blur-md border-t border-white/5 no-print flex flex-col gap-3">
                   <button 
                     onClick={() => window.print()} 
-                    className="w-full bg-cyan-600 py-6 rounded-2xl font-black uppercase tracking-[0.4em] text-sm text-white hover:bg-cyan-500 shadow-2xl transition-all active:scale-[0.98]"
+                    className="w-full bg-cyan-600 py-6 rounded-2xl font-black uppercase tracking-[0.4em] text-sm text-white shadow-2xl transition-all active:scale-[0.98]"
                   >
                     🖨️ OPEN PRINT DIALOG
                   </button>
-                  <button 
-                    onClick={() => setPrintSuccess(true)}
-                    className="text-[10px] font-bold text-slate-600 uppercase tracking-widest hover:text-red-500 transition-colors"
-                  >
-                    Click here only after printing is finished
+                  <button onClick={() => setPrintSuccess(true)} className="text-[10px] font-bold text-slate-600 uppercase tracking-widest hover:text-red-500 text-center transition-colors">
+                    Finish & Clear Station
                   </button>
                 </div>
               </div>
@@ -178,17 +184,17 @@ const SecureUploader = () => {
     );
   }
 
+  /* MOBILE UI */
   return (
     <div className="fixed inset-0 bg-slate-950 text-white flex flex-col p-6 overflow-hidden">
       <div className="bg-slate-900/50 p-4 rounded-2xl border border-white/5 mb-6 flex justify-between items-center">
-        <span className="text-[10px] font-bold uppercase text-cyan-400 tracking-widest">STATION: #{displayId}</span>
+        <span className="text-[10px] font-bold uppercase text-cyan-400 tracking-widest">ID: #{displayId}</span>
         <span className="text-[8px] text-green-500 font-bold animate-pulse">● LIVE</span>
       </div>
-
       {status === "success" ? (
         <div className="flex-1 flex flex-col justify-center items-center text-center">
            <div className="w-16 h-16 bg-cyan-600 rounded-full flex items-center justify-center mb-6 text-2xl shadow-lg">✓</div>
-           <h2 className="text-xl font-bold mb-8 uppercase tracking-widest italic">Sent Successfully!</h2>
+           <h2 className="text-xl font-bold mb-8 uppercase tracking-widest italic">Beamed!</h2>
            <button onClick={() => setStatus("idle")} className="px-10 py-4 bg-slate-900 border border-white/10 rounded-full text-[10px] uppercase font-bold text-cyan-400">Add More</button>
         </div>
       ) : (
@@ -197,9 +203,8 @@ const SecureUploader = () => {
                onClick={() => fileInputRef.current.click()}>
               <input type="file" multiple ref={fileInputRef} className="hidden" onChange={handleFileChange} />
               <div className="text-3xl mb-2">📤</div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Select Files</p>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Upload Files</p>
           </div>
-
           <div className="flex-1 overflow-y-auto space-y-3 mb-6 custom-scrollbar pr-1">
             {files.map((file) => (
               <div key={file.id} className="bg-slate-900/80 p-4 rounded-2xl border border-white/5 relative overflow-hidden">
@@ -216,7 +221,6 @@ const SecureUploader = () => {
               </div>
             ))}
           </div>
-
           {files.length > 0 && (
             <button 
               onClick={sendAllFiles} 

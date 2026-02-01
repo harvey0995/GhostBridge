@@ -2,73 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
+/* --- GHOSTBRIDGE PRINT ENGINE V4 --- */
 @media print {
-  /* Hide the entire React App */
-  body * {
-    visibility: hidden !important;
+  /* 1. Reset & Global Hide */
+  @page { margin: 0; size: auto; }
+  
+  body * { 
+    visibility: hidden !important; 
   }
 
-  /* Show ONLY the print area and its contents */
-  .print-area, .print-area * {
-    visibility: visible !important;
+  /* 2. Print Area Isolation */
+  .print-area, .print-area * { 
+    visibility: visible !important; 
   }
 
-  /* Position the print area at the absolute top of the paper */
   .print-area {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
     width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
     display: block !important;
+    background: white !important;
   }
 
-  /* Force each image/PDF to be its own full page */
+  /* 3. Standard Mode (Full Page) */
   .print-item {
-    width: 100vw !important;
-    height: 100vh !important;
     page-break-after: always !important;
+    page-break-inside: avoid !important;
+    width: 100% !important;
+    height: 100vh !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
   }
 
-  img, embed {
+  /* 4. Paper Saver Mode (Dynamic Grid) 
+     Works for 2, 3, or 4 images per page */
+  .grid-mode {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important; /* 2 columns */
+    grid-auto-rows: 48vh !important; /* Half page height */
+    gap: 10px !important;
+    page-break-after: auto !important;
+  }
+
+  .grid-mode .print-item {
+    page-break-after: auto !important;
+    height: 100% !important;
+    width: 100% !important;
+    border: 1px dashed #eee !important; /* Light guide for cutting */
+  }
+
+  /* 5. Image & PDF Scaling */
+  img, object, embed {
     max-width: 100% !important;
     max-height: 100% !important;
     object-fit: contain !important;
+    display: block !important;
   }
 
-  /* Remove headers, footers, and buttons */
-  header, aside, button, .no-print {
+  /* 6. Clean UI removal */
+  .no-print, header, aside, button, .control-bar {
     display: none !important;
   }
 }
 
-@media print {
-  /* ... keep your existing hide logic ... */
-
-  .print-area {
-    display: block !important;
-    overflow: visible !important;
-  }
-
-  .print-item {
-    display: block !important;
-    page-break-after: always !important; /* Forces each image to a new sheet */
-    page-break-inside: avoid !important;
-    width: 100% !important;
-    height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  img, object {
-    display: block !important;
-    width: 100% !important;
-    height: auto !important;
-    max-height: 100vh !important;
-    object-fit: contain !important;
-  }
-}
+/* Screen Scrollbar (Optional UI touch) */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 10px; }
